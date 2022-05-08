@@ -37,6 +37,13 @@ def F_test(data_1, data_2, epsilon):
     return stats.f.cdf(F, len(data_1), len(data_2)) <= epsilon
 
 
+def student_test(data_1, data_2, epsilon):
+    m = len(data_1)
+    n = len(data_2)
+
+    # z = (data_1.mean() - data_2.mean()) / np.sqrt()
+
+
 def read_data(filename):
     with open(filename, 'r', encoding='utf-8') as file:
         return np.array([float(row) for row in file.readlines()])

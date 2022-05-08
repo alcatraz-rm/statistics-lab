@@ -17,7 +17,7 @@ def empiric_function(t):
     return sum([1 if x_i < t else 0 for x_i in data]) / n
 
 
-def plot(f):
+def plot_func(f):
     plt.style.use('_mpl-gallery')
 
     x = np.linspace(0, 1, 1001)
@@ -55,4 +55,22 @@ def plot(f):
     plt.show()
 
 
-plot(empiric_function)
+def plot_hist(f):
+    plt.style.use('_mpl-gallery')
+
+    x = np.linspace(0, 1, 1001)
+    y = np.array([f(t) for t in x])
+
+    fig = plt.figure(figsize=(20, 10), layout='constrained', dpi=200)
+    ax = fig.add_subplot()
+
+    ax.hist(y, density=True, bins=30)
+    ax.set_xlabel('t')
+    ax.set_ylabel('Frequency')
+    ax.set_title("Empiric Function Hist")
+
+    plt.show()
+
+
+# plot_func(empiric_function)
+plot_hist(empiric_function)
