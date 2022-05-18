@@ -1,15 +1,22 @@
+from math import inf
 from pprint import pprint
 
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.optimize import minimize_scalar
+from statsmodels.distributions.empirical_distribution import ECDF
 
 
 def read_data(filename):
     with open(filename, 'r', encoding='utf-8') as file:
-        return np.array([float(row) for row in file.readlines()])
+        ls = []
+        for line in file.readlines():
+            ls.extend([float(x) for x in line.split()])
+
+        return np.array(ls)
 
 
-data = read_data('data_2.csv')
+data = read_data('data_2_tmp.csv')
 n = len(data)
 
 
@@ -72,5 +79,24 @@ def plot_hist(f):
     plt.show()
 
 
-# plot_func(empiric_function)
-plot_hist(empiric_function)
+def k_test(X, epsilon=None):
+    ecdf = ECDF(data)
+
+    def sup_diff(t):
+        if t < 0:
+            F_ = 0
+        elif t > 1:
+            F_ = 1
+        else:
+            F_ = t
+
+        return -1 * np.fabs(F_ - ecdf(t))
+
+    K = minimize_scalar(sup_diff, bounds=(0, 1), method='bounded').x
+    print('K test', K)
+    print(sup_diff(K))
+
+
+# plot_func(ECDF(data))
+# plot_hist(empiric_function)
+k_test(data)
