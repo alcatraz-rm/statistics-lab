@@ -3,7 +3,8 @@ from pprint import pprint
 
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.optimize import minimize_scalar
+from scipy import stats
+import matplotlib.ticker as ticker
 from statsmodels.distributions.empirical_distribution import ECDF
 
 
@@ -27,7 +28,7 @@ def empiric_function(t):
 def plot_func(f):
     plt.style.use('_mpl-gallery')
 
-    x = np.linspace(0, 1, 1001)
+    x = np.linspace(0, 1, 1000)
     y = np.array([f(t) for t in x])
 
     x_1, y_1 = [0], [0]
@@ -50,14 +51,22 @@ def plot_func(f):
     fig = plt.figure(figsize=(20, 10), layout='constrained', dpi=200)
     ax = fig.add_subplot()
     ax.scatter(x_1, y_1, edgecolor='b', zorder=1, marker='<')
+    ax.xaxis.set_major_locator(ticker.MultipleLocator(0.05))
+    ax.yaxis.set_major_locator(ticker.MultipleLocator(0.05))
 
     for x_, y_ in zip(segments_x, segments_y):
         ax.plot(x_, y_, color='r', zorder=0)
 
-    # ax.plot(x, y, color='r', zorder=0)
     ax.set_xlabel('t')
     ax.set_ylabel('F(t)')
     ax.set_title("Empiric Function Plot")
+
+    ax.plot(x, x, color='b', zorder=0)
+
+    # ax.annotate('sup point',
+    #         xy=(0.349, 0.35),
+    #         xytext=(0.4, 0.25),
+    #         arrowprops = dict(facecolor='black', shrink=0.05))
 
     plt.show()
 
@@ -71,7 +80,8 @@ def plot_hist(f):
     fig = plt.figure(figsize=(20, 10), layout='constrained', dpi=200)
     ax = fig.add_subplot()
 
-    ax.hist(y, density=True, bins=30)
+    ax.hist(y, bins=30)
+
     ax.set_xlabel('t')
     ax.set_ylabel('Frequency')
     ax.set_title("Empiric Function Hist")
@@ -80,23 +90,41 @@ def plot_hist(f):
 
 
 def k_test(X, epsilon=None):
-    ecdf = ECDF(data)
+    X_sorted = np.sort(X)
+    N = len(X)
 
-    def sup_diff(t):
-        if t < 0:
-            F_ = 0
-        elif t > 1:
-            F_ = 1
-        else:
-            F_ = t
+    point = ""
+    sup = 0
 
-        return -1 * np.fabs(F_ - ecdf(t))
+    for i in range(1, N+1):
+        if np.abs(X_sorted[i - 1] - (i-1)/N) > sup:
+            sup = np.abs(X_sorted[i - 1] - (i-1)/N)
+            point = f"X({i}) = {X_sorted[i - 1]}"
 
-    K = minimize_scalar(sup_diff, bounds=(0, 1), method='bounded').x
+        if np.abs(X_sorted[i - 1] - i/N) > sup:
+            sup = np.abs(X_sorted[i - 1] - i/N)
+            point = f"X({i}) = {X_sorted[i - 1]}"
+
+    print(sup)
+    print(point)
+
+    K = np.sqrt(N) * sup
+    q = stats.ksone.ppf(1-epsilon, N)
+
     print('K test', K)
-    print(sup_diff(K))
+    print(q)
+
+    print('p-value', stats.kstest(X, 'uniform')[1])
+
+    return K < q
 
 
+def chi_square(X):
+    return stats.chisquare(X)
+
+
+epsilon = 0.05
 # plot_func(ECDF(data))
-# plot_hist(empiric_function)
-k_test(data)
+# plot_hist(ECDF(data))
+# print(k_test(data, epsilon))
+print(chi_square(data))
